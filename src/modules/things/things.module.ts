@@ -6,6 +6,8 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { MailService } from './services/mail.service';
 import { JwtTokenService } from './services/jwt-token.service';
+import { BusinessController } from './controllers/business.controller';
+import { BusinessService } from './services/business.service';
 
 dotenv.config();
 
@@ -14,8 +16,8 @@ dotenv.config();
         MongooseModule.forRoot(process.env.DB_URL!),
         MongooseModule.forFeature(MongooseModels),
     ],
-    controllers: [AuthController],
-    providers: [AuthService, MailService, JwtTokenService],
+    controllers: [AuthController, BusinessController],
+    providers: [AuthService, MailService, JwtTokenService, BusinessService],
 })
 export class ThingsModule {
     constructor() {

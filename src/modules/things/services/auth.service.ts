@@ -17,7 +17,7 @@ import { ConfirmCodeDto } from "../dtos/confirm-code.dto";
 export class AuthService {
     constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
     async signup(signupData: SignupDto) {
-        let { email, password , code } = signupData;
+        let { email, password , code , fullName, mobileNumber } = signupData;
         email = email.toLowerCase()
         const verificationRecord = await this.emailVerificationModel.findOne({
             email,
@@ -36,6 +36,8 @@ export class AuthService {
         const user = await this.userModel.create({
             email,
             password: hashedPassword,
+            fullName,
+            mobileNumber: parseInt(mobileNumber)
         });
 
         const accessToken = this.generateToken(user._id.toString());

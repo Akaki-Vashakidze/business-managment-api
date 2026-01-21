@@ -6,15 +6,15 @@ export class RecordSchema {
     @Prop({ required: true, type: Number, enum: RecordState, default: RecordState.ACTIVE })
     state: number;
 
-    @Prop({ type: Boolean, default: false })
-    isDeleted: boolean;
+    @Prop({ type: Number, default: 0 })
+    isDeleted: number;
 
     @Prop({ type: Date, default: new Date() })
     createdAt: Date;
 
     constructor() {
         this.state = RecordState.ACTIVE
-        this.isDeleted = false;
+        this.isDeleted = 0;
         this.createdAt = new Date();
     }
 }

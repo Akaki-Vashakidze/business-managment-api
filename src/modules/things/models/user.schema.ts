@@ -10,7 +10,16 @@ export class User extends BaseSchema {
     @Prop({ required: true, unique: true })
     email: string;
 
-    @Prop({ default: false })
-    isActive: boolean;
+    @Prop({ default: '', required:true })
+    fullName: string;
+
+    @Prop({ required: false, unique: true })
+    mobileNumber: number;
+
+    @Prop({ default: 0 })
+    isManager: number;
+
+    @Prop({ default: 0 })
+    isOwner: number;
 }
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -15,4 +15,10 @@ export class SignupDto  {
     @IsString()
     code: string;
 
+    @IsString()
+    fullName: string;
+
+    @IsString()
+    mobileNumber: string;
+
 }
