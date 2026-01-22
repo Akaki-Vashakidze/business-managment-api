@@ -8,6 +8,8 @@ import { MailService } from './services/mail.service';
 import { JwtTokenService } from './services/jwt-token.service';
 import { BusinessController } from './controllers/business.controller';
 import { BusinessService } from './services/business.service';
+import { BranchController } from './controllers/branches.controller';
+import { BranchesService } from './services/branches.service';
 
 dotenv.config();
 
@@ -16,8 +18,8 @@ dotenv.config();
         MongooseModule.forRoot(process.env.DB_URL!),
         MongooseModule.forFeature(MongooseModels),
     ],
-    controllers: [AuthController, BusinessController],
-    providers: [AuthService, MailService, JwtTokenService, BusinessService],
+    controllers: [AuthController, BusinessController, BranchController],
+    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService],
 })
 export class ThingsModule {
     constructor() {

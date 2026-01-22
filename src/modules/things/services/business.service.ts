@@ -27,6 +27,7 @@ export class BusinessService {
     }
 
     async deleteBusiness(businessId: string) {
+        console.log("Deleting business with ID:", businessId);
         return this.businessModel.findByIdAndDelete(businessId);
     }   
 

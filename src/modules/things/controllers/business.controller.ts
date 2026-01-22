@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req } from "@nestjs/common";
 import { AuthService } from "../services/auth.service";
 import { BusinessDto } from "../dtos/business.dto";
 import { BusinessService } from "../services/business.service";
@@ -15,19 +15,19 @@ export class BusinessController {
         return this.businessService.createBusiness(businessData, userId);
     }
 
-    async getBusinessById(@Body('businessId') businessId: string) {
-        return this.businessService.getBusinessById(businessId);
+    @Get('get-all-my-businesses')
+    async getBusinessesByOwner(@Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.businessService.getBusinessesByOwner(userId);
     }
 
-    async getBusinessesByOwner(@Body('ownerId') ownerId: string) {
-        return this.businessService.getBusinessesByOwner(ownerId);
+    @Delete('delete-business/:businessId')
+    async deleteBusiness(@Param('businessId') businessId: string) {
+    return this.businessService.deleteBusiness(businessId);
     }
 
-    async deleteBusiness(@Body('businessId') businessId: string) {
-        return this.businessService.deleteBusiness(businessId);
-    }
-
-    async updateBusiness(@Body('businessId') businessId: string, @Body() businessData: BusinessDto) {
+    @Put('update-business/:businessId')
+    async updateBusiness(@Param('businessId') businessId: string, @Body() businessData: BusinessDto) {
         return this.businessService.updateBusiness(businessId, businessData);
     }   
 }
