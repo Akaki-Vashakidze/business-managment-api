@@ -39,7 +39,7 @@ export class ItemsService {
         return this.ItemModel.findByIdAndDelete(ItemId);
     }   
 
-    async updateItem(ItemId: string, ItemData: {name:string}) {
+    async updateItem(ItemId: string, ItemData: {name}) {
         return this.ItemModel.findByIdAndUpdate(ItemId, ItemData, { new: true });
     }
 
