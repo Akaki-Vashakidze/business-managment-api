@@ -26,7 +26,7 @@ export class BranchController {
     }
 
     @Put('update-Branch/:BranchId')
-    async updateBranch(@Param('BranchId') BranchId: string, @Body() BranchData: BranchDto) {
+    async updateBranch(@Param('BranchId') BranchId: string, @Body() BranchData: {name:string}) {
         return this.branchesService.updateBranch(BranchId, BranchData);
     }   
 }

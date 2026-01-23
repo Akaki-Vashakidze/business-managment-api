@@ -25,7 +25,7 @@ export class BranchesService {
         return this.BranchModel.findByIdAndDelete(BranchId);
     }   
 
-    async updateBranch(BranchId: string, BranchData: BranchDto) {
+    async updateBranch(BranchId: string, BranchData: {name:string}) {
         return this.BranchModel.findByIdAndUpdate(BranchId, BranchData, { new: true });
     }
 
