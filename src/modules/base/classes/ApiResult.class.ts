@@ -11,6 +11,6 @@ export enum ApiResponseType {
 export class ApiResult<T> {
     type: ApiResponseType;
     data: T;
-    page?: ApiPage;
+    page?: ApiPage | any;
     sort: ApiSort[];
 }

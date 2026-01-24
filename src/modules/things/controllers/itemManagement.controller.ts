@@ -24,4 +24,9 @@ export class ItemManagementController {
         return this.itemManagementService.updateReservation(reservationId, reservationData);
     }
 
+    @Post('get-all-item-reservations')
+    async getAllItemReservations(@Body() itemIds: {itemIds:string[]}) {
+        return this.itemManagementService.getAllItemReservations(itemIds.itemIds);
+    }
+
 }
