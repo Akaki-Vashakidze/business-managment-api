@@ -4,10 +4,11 @@ import { Model } from "mongoose";
 import { Item } from "../models/item.schema";
 import { ItemDto } from "../dtos/item.dto";
 import { BusinessBranch } from "../models/businessBranch";
+import { ItemManagement } from "../models/itemManagement.schema";
 
 @Injectable()
 export class ItemsService {
- constructor(@InjectModel(Item.name) private ItemModel: Model<Item>, @InjectModel(BusinessBranch.name) private branchModel: Model<BusinessBranch>) { }
+ constructor(@InjectModel(Item.name) private ItemModel: Model<Item>, @InjectModel(BusinessBranch.name) private branchModel: Model<BusinessBranch>, @InjectModel(ItemManagement.name) private itemManagement:Model<ItemManagement>) { }
     async createItem(ItemData: ItemDto, ownerId: string) {
 
         const branch1 = await this.branchModel
@@ -36,6 +37,7 @@ export class ItemsService {
     }
 
     async deleteItem(ItemId: string) {
+        await this.itemManagement.deleteMany({item:ItemId})
         return this.ItemModel.findByIdAndDelete(ItemId);
     }   
 
