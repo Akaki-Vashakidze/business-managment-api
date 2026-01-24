@@ -72,4 +72,30 @@ export class ItemManagementService {
         return reservations;
     }
 
+    async getAllItemReservationsForTodayDate(itemIds: string[]) {
+        if (!itemIds || itemIds.length === 0) return [];
+
+        // Start of today (00:00)
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        // Start of tomorrow (00:00 next day)
+        const startOfTomorrow = new Date(startOfToday);
+        startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+        const reservations = await this.ItemManagementModel.find({
+            item: { $in: itemIds },
+            date: {
+                $gte: startOfToday,
+                $lt: startOfTomorrow
+            }
+        })
+        .sort({ startHour: 1, startMinute: 1 })
+        .populate('user', 'fullName')
+        .populate('item', 'name');
+
+        return reservations;
+    }
+
+
 }

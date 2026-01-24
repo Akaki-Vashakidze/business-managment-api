@@ -29,4 +29,11 @@ export class ItemManagementController {
         return this.itemManagementService.getAllItemReservations(itemIds.itemIds);
     }
 
+
+    @Post('get-all-item-reservations-for-today')
+    async getAllItemReservationsForTodayDate(@Body() itemIds: {itemIds:string[]}) {
+        return this.itemManagementService.getAllItemReservationsForTodayDate(itemIds.itemIds);
+    }
+    
+
 }
