@@ -8,7 +8,7 @@ import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 
 @Injectable()
 export class ItemManagementService {
-    constructor(@InjectModel(ItemManagement.name) private ItemManagementModel: Model<ItemManagement>,@InjectModel(User.name) private user: Model<User>) { }
+    constructor(@InjectModel(ItemManagement.name) private itemManagementModel: Model<ItemManagement>, @InjectModel(User.name) private user: Model<User>) { }
 
     async reserveItemByAdmin(ItemManagementData: ReserveItemDto, adminId: string) {
         const { date, startHour, startMinute, endHour, endMinute, item } = ItemManagementData;
@@ -19,11 +19,11 @@ export class ItemManagementService {
 
         const user = await this.user.findById(ItemManagementData.user);
         if (!user) {
-        return ApiResponse.error('This user does not exist', 400);
+            return ApiResponse.error('This user does not exist', 400);
         }
 
         // Find existing reservations for the same item and date
-        const existingReservations = await this.ItemManagementModel.find({
+        const existingReservations = await this.itemManagementModel.find({
             item,
             date: new Date(date)
         });
@@ -41,7 +41,7 @@ export class ItemManagementService {
         }
 
         // No overlap, create reservation
-        const created = await this.ItemManagementModel.create({
+        const created = await this.itemManagementModel.create({
             ...ItemManagementData,
             acceptedBy: adminId
         });
@@ -51,23 +51,23 @@ export class ItemManagementService {
 
 
     async getReservationsByItem(itemId: string) {
-        return this.ItemManagementModel.find({ item: itemId });
+        return this.itemManagementModel.find({ item: itemId });
     }
 
     async updateReservation(reservationId: string, reservationData: ReserveItemDto) {
-        return this.ItemManagementModel.findByIdAndUpdate(reservationId, reservationData, { new: true });
+        return this.itemManagementModel.findByIdAndUpdate(reservationId, reservationData, { new: true });
     }
 
     async getAllItemReservations(itemIds: string[]) {
         if (!itemIds || itemIds.length === 0) return [];
 
         // Find reservations for all items in the array
-        const reservations = await this.ItemManagementModel.find({
+        const reservations = await this.itemManagementModel.find({
             item: { $in: itemIds }
         })
-        .sort({ date: 1, startHour: 1, startMinute: 1 }) // sort by date and start time
-        .populate('user', 'fullName')   // optional: populate user info
-        .populate('item', 'name');      // optional: populate item info
+            .sort({ date: 1, startHour: 1, startMinute: 1 }) // sort by date and start time
+            .populate('user', 'fullName')   // optional: populate user info
+            .populate('item', 'name');      // optional: populate item info
 
         return reservations;
     }
@@ -83,19 +83,32 @@ export class ItemManagementService {
         const startOfTomorrow = new Date(startOfToday);
         startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
-        const reservations = await this.ItemManagementModel.find({
+        const reservations = await this.itemManagementModel.find({
             item: { $in: itemIds },
             date: {
                 $gte: startOfToday,
                 $lt: startOfTomorrow
             }
         })
-        .sort({ startHour: 1, startMinute: 1 })
-        .populate('user', 'fullName')
-        .populate('item', 'name');
+            .sort({ startHour: 1, startMinute: 1 })
+            .populate('user', 'fullName mobileNumber email')
+            .populate('item', 'name');
 
         return reservations;
     }
 
+    async markItemAsPaid(itemManagingId: string) {
+        const updated = await this.itemManagementModel.findOneAndUpdate(
+            { _id: itemManagingId }, 
+            { isPaid: 1 },       
+            { new: true }            
+        );
+
+        if (!updated) {
+            return ApiResponse.error('Reservation not found', 400);
+        }
+
+        return ApiResponse.success(updated);
+    }
 
 }

@@ -35,5 +35,8 @@ export class ItemManagementController {
         return this.itemManagementService.getAllItemReservationsForTodayDate(itemIds.itemIds);
     }
     
-
+    @Post('mark-item-as-paid/:itemManagingId')
+    async markItemAsPaid(@Param('itemManagingId') itemManagingId: string){
+        return this.itemManagementService.markItemAsPaid(itemManagingId)
+    }
 }
