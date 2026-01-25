@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { User } from "../models/user.schema";
 import { Model } from "mongoose";
+import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 
 @Injectable()
 export class UserService {
@@ -12,6 +13,12 @@ export class UserService {
     }
 
     async getFilteredUsers(searchQuery: string) {
-        return this.userModel.find({ fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
+        const users = await this.userModel.find({ fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
+        if (users) {
+            // ApiResponse.success(users)
+            return users;
+        } else {
+            ApiResponse.error('users not found', 400)
+        }
     }
 }

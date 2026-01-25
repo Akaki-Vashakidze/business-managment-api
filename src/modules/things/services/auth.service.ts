@@ -12,43 +12,57 @@ import { MailService } from "./mail.service";
 import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 import { EmailVerification } from "../models/email-verification.schema";
 import { ConfirmCodeDto } from "../dtos/confirm-code.dto";
+import { randomUUID } from 'crypto';
+
 
 @Injectable()
 export class AuthService {
     constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
+
     async signup(signupData: SignupDto) {
-        let { email, password , code , fullName, mobileNumber } = signupData;
-        email = email.toLowerCase()
+        let { email, password, code, fullName, mobileNumber } = signupData;
+        email = email.toLowerCase();
+
         const verificationRecord = await this.emailVerificationModel.findOne({
             email,
             code,
-            passwordExpire: { $gt: new Date() }, // check if still valid
+            passwordExpire: { $gt: new Date() },
         });
 
         if (!verificationRecord) {
-            return new ApiException("Email not verified or password creation time expired", 400);
+            throw new ApiException("Email not verified or password creation time expired", 400);
         }
+
         const emailInUse = await this.userModel.exists({ email });
         if (emailInUse) {
-            return new ApiException("Email already in use", 400);
+            throw new ApiException("Email already in use", 400);
         }
+
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        // ✅ QR VALUE გენერაცია
+        const qrCode = `GYM-${randomUUID()}`;
+
         const user = await this.userModel.create({
             email,
             password: hashedPassword,
             fullName,
-            mobileNumber: parseInt(mobileNumber)
+            mobileNumber: parseInt(mobileNumber),
+            qrCode // 👈 აქ
         });
 
         const accessToken = this.generateToken(user._id.toString());
+
         try {
             await this.storeAccessToken(user._id, await accessToken);
         } catch (err) {
             console.error('Failed to store access token:', err);
             throw new ApiException('Internal server error while creating token', 500);
         }
+
         return { user, token: await accessToken };
     }
+
 
     async generateToken(userId: string) {
         const token = jwt.sign({ userId }, process.env.JWT_SECRET);

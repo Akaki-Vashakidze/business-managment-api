@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 
 @Controller('user')
@@ -10,8 +10,9 @@ export class UserController {
         return this.userService.getAllUsersMinusOwnerAndManagers();
     }
 
-    @Post('get-filtered-users/:searchQuery')
-    async getFilteredUsers(@Param('searchQuery') searchQuery: string) {
+    @Post('get-filtered-users')
+    async getFilteredUsers(@Body() body: { searchQuery: string }) {
+        const { searchQuery } = body;
         return this.userService.getFilteredUsers(searchQuery);
     }
 
