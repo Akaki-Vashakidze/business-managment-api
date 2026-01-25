@@ -9,9 +9,9 @@ import { JwtTokenService } from "../services/jwt-token.service";
 export class MembershipController {
     constructor(private readonly membershipService: MembershipService, private jwtTokenService:JwtTokenService) { }
     @Post('check-in')
-    async checkIn(@Body('qr') qr: string, @Req() req: Request) {
+    async checkIn(@Body() body: {qr: string, business:string, branch:string }, @Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
-        return this.membershipService.checkIn(qr, userId);
+        return this.membershipService.checkIn(body, userId);
     }
 
     @Post('create') // მხოლოდ Staff/Admin

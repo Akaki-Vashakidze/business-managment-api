@@ -20,7 +20,18 @@ export class Membership extends BaseSchema {
   @Prop({ required: true })
   endDate: Date;
 
+  @Prop({
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Business',
+      required: true
+  })
+  business: Types.ObjectId;
+
+  @Prop({
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }],
+      default: []
+  })
+  branches: Types.ObjectId[];
 }
 
-export const MembershipSchema =
-  SchemaFactory.createForClass(Membership);
+export const MembershipSchema = SchemaFactory.createForClass(Membership);

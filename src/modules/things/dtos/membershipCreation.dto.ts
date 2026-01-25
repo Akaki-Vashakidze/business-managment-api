@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { MembershipType } from '../enums/membership.enum';
 
 export class CreateMembershipDto {
@@ -9,4 +9,11 @@ export class CreateMembershipDto {
   @IsNotEmpty()
   @IsEnum(MembershipType)
   type: MembershipType;
+
+  @IsNotEmpty()
+  @IsString()
+  business: string;
+
+  @IsArray()
+  branches:string[]
 }
