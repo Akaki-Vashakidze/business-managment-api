@@ -16,4 +16,9 @@ export class UserController {
         return this.userService.getFilteredUsers(searchQuery);
     }
 
+    @Get('getById/:userId')
+    async getUserById(@Param('userId') userId: string ){
+        return this.userService.getUserById(userId)
+    }
+
 }

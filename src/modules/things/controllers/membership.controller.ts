@@ -2,13 +2,16 @@ import { Body, Controller, Get, Post, Put, Req, UseGuards } from "@nestjs/common
 import { AuthService } from "../services/auth.service";
 import { MembershipService } from "../services/membership.service";
 import { CreateMembershipDto } from "../dtos/membershipCreation.dto";
+import { Helper } from "../utils/helper";
+import { JwtTokenService } from "../services/jwt-token.service";
 
 @Controller('membership')
 export class MembershipController {
-    constructor(private readonly membershipService: MembershipService) { }
+    constructor(private readonly membershipService: MembershipService, private jwtTokenService:JwtTokenService) { }
     @Post('check-in')
-    async checkIn(@Body('qr') qr: string, @Req() req) {
-        return this.membershipService.checkIn(qr, req.user.id);
+    async checkIn(@Body('qr') qr: string, @Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.membershipService.checkIn(qr, userId);
     }
 
     @Post('create') // მხოლოდ Staff/Admin

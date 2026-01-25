@@ -9,6 +9,7 @@ import { Membership } from "../models/membership.schema";
 import { CreateMembershipDto } from "../dtos/membershipCreation.dto";
 import { MembershipType } from "../enums/membership.enum";
 import { RecordState } from "src/modules/base/enums/record-state.enum";
+import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 
 @Injectable()
 export class MembershipService {
@@ -19,36 +20,47 @@ export class MembershipService {
         if (!user) throw new ApiException('INVALID_QR');
 
         const membership = await this.membershipModel.findOne({
-            userId: user._id,
-            active: true,
+            userId: user._id.toString(),
+            'record.isDeleted': 0,
+            'record.state': RecordState.ACTIVE,
             endDate: { $gte: new Date() }
         });
 
-        if (!membership || membership.remainingVisits <= 0)
-            throw new ApiException('NO_VISITS');
+        if (!membership || membership.remainingVisits <= 0) {
+            // throw new ApiException('NO_VISITS');
+            return ApiResponse.error('User has no visits', 400)
+        }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         const alreadyVisited = await this.visitModel.findOne({
-            userId: user._id,
+            userId: user._id.toString(),
+            'record.isDeleted': 0,
             scannedAt: { $gte: today }
         });
 
-        if (alreadyVisited)
-            throw new ApiException('ALREADY_VISITED_TODAY');
+        if (alreadyVisited) {
+            return ApiResponse.error('ALREADY_VISITED_TODAY', 400)
+        }
 
         await this.visitModel.create({
-            userId: user._id,
-            membershipId: membership._id,
+            userId: user._id.toString(),
+            membershipId: membership._id.toString(),
             scannedBy: staffId
         });
 
-        membership.remainingVisits--;
+        membership.remainingVisits -= 1;
+        
         await membership.save();
 
-        return { success: true };
+        return {
+            success: true,
+            remainingVisits: membership.remainingVisits
+        };
     }
+
+
 
     async createMembership(dto: CreateMembershipDto) {
         const startDate = new Date();

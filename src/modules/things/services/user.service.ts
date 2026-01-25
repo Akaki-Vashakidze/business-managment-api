@@ -21,4 +21,13 @@ export class UserService {
             ApiResponse.error('users not found', 400)
         }
     }
+
+    async getUserById(id: string) {
+        const user = await this.userModel.findById(id).select('-password');
+        if (user) {
+            return ApiResponse.success(user)
+        } else {
+            ApiResponse.error('users not found', 400)
+        }
+    }
 }
