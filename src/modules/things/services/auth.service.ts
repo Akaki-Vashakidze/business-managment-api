@@ -19,49 +19,46 @@ import { randomUUID } from 'crypto';
 export class AuthService {
     constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
 
-    async signup(signupData: SignupDto) {
-        let { email, password, code, fullName, mobileNumber } = signupData;
-        email = email.toLowerCase();
+async signup(signupData: SignupDto) {
+    let { email, password, code, fullName, mobileNumber } = signupData;
+    email = email.toLowerCase();
 
-        const verificationRecord = await this.emailVerificationModel.findOne({
-            email,
-            code,
-            passwordExpire: { $gt: new Date() },
-        });
+    const verificationRecord = await this.emailVerificationModel.findOne({
+        email,
+        code,
+        passwordExpire: { $gt: new Date() },
+    });
 
-        if (!verificationRecord) {
-            throw new ApiException("Email not verified or password creation time expired", 400);
-        }
-
-        const emailInUse = await this.userModel.exists({ email });
-        if (emailInUse) {
-            throw new ApiException("Email already in use", 400);
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // ✅ QR VALUE გენერაცია
-        const qrCode = `GYM-${randomUUID()}`;
-
-        const user = await this.userModel.create({
-            email,
-            password: hashedPassword,
-            fullName,
-            mobileNumber: parseInt(mobileNumber),
-            qrCode // 👈 აქ
-        });
-
-        const accessToken = this.generateToken(user._id.toString());
-
-        try {
-            await this.storeAccessToken(user._id, await accessToken);
-        } catch (err) {
-            console.error('Failed to store access token:', err);
-            throw new ApiException('Internal server error while creating token', 500);
-        }
-
-        return { user, token: await accessToken };
+    if (!verificationRecord) {
+        throw new ApiException("Email not verified or password creation time expired", 400);
     }
+
+    const emailInUse = await this.userModel.exists({ email });
+    if (emailInUse) {
+        throw new ApiException("Email already in use", 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 1️⃣ create user without qrCode
+    const user = await this.userModel.create({
+        email,
+        password: hashedPassword,
+        fullName,
+        mobileNumber: parseInt(mobileNumber)
+    });
+
+    // 2️⃣ use Mongo _id as QR
+    user.qrCode = user._id.toString();
+    await user.save();
+
+    const accessToken = await this.generateToken(user._id.toString());
+
+    await this.storeAccessToken(user._id, accessToken);
+
+    return { user, token: accessToken };
+}
+
 
 
     async generateToken(userId: string) {

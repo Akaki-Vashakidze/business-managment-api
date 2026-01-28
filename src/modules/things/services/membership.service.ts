@@ -10,16 +10,19 @@ import { CreateMembershipDto } from "../dtos/membershipCreation.dto";
 import { MembershipType } from "../enums/membership.enum";
 import { RecordState } from "src/modules/base/enums/record-state.enum";
 import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
+import { ItemManagementService } from "./itemManagement.service";
+import { ReserveItemDto } from "../dtos/reserveItem.dto";
 
 @Injectable()
 export class MembershipService {
-    constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(Visit.name) private visitModel: Model<Visit>, @InjectModel(Membership.name) private membershipModel: Model<Membership>) { }
+    constructor(private itemManagementService: ItemManagementService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(Visit.name) private visitModel: Model<Visit>, @InjectModel(Membership.name) private membershipModel: Model<Membership>) { }
 
 async checkIn(
-    body: { qr: string; business: string; branch: string },
-    staffId: string
+    body: { qr: string; business: string; branch: string , itemManagementData: ReserveItemDto},
+    staffId: string,
 ) {
-    const { qr, business, branch } = body;
+    const { qr, business, branch , itemManagementData} = body;
+
     // 1️⃣ Find user by QR code
     const user = await this.userModel.findOne({ qrCode: qr });
     if (!user) return ApiResponse.error('INVALID_QR', 400);
@@ -39,7 +42,6 @@ async checkIn(
 
     // 3️⃣ Check branch (if membership has branches defined)
     if (membership.branches && membership.branches.length > 0) {
-        // branches array is not empty, make sure branch is included
         if (!membership.branches.some(b => b.toString() === branch)) {
             return ApiResponse.error('NO_VALID_MEMBERSHIP_FOR_THIS_BRANCH', 400);
         }
@@ -51,18 +53,26 @@ async checkIn(
         return ApiResponse.error('NO_VISITS_LEFT', 400);
     }
 
-    // 5️⃣ Check if user already visited today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // 5️⃣ Check if user already visited today using UTC boundaries
+    const now = new Date();
+    const startOfDayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const endOfDayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
 
     const alreadyVisited = await this.visitModel.findOne({
         userId: user._id.toString(),
+        membershipId: membership._id.toString(),
         'record.isDeleted': 0,
-        scannedAt: { $gte: today }
+        scannedAt: { $gte: startOfDayUTC, $lt: endOfDayUTC }
     });
 
-    if (alreadyVisited) {
-        return ApiResponse.error('ALREADY_VISITED_TODAY', 400);
+    // if (alreadyVisited) {
+    //     return ApiResponse.error('ALREADY_VISITED_TODAY', 400);
+    // }
+
+    let itemReserve = await this.itemManagementService.reserveItemByAdmin(itemManagementData,staffId)
+    console.log(itemReserve)
+    if(!itemReserve) {
+        return 'error'
     }
 
     // 6️⃣ Log the visit
@@ -83,6 +93,7 @@ async checkIn(
         remainingVisits: membership.remainingVisits
     };
 }
+
 
 
     async createMembership(dto: CreateMembershipDto) {
