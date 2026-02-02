@@ -21,6 +21,11 @@ export class BusinessController {
         return this.businessService.getBusinessesByOwner(userId);
     }
 
+    @Get('get-all-businesses')
+    async getAllBusinesses() {
+        return this.businessService.getAllActiveBusinesses();
+    }
+
     @Delete('delete-business/:businessId')
     async deleteBusiness(@Param('businessId') businessId: string) {
     return this.businessService.deleteBusiness(businessId);

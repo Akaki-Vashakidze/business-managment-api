@@ -5,15 +5,15 @@ import { UserService } from "../services/user.service";
 export class UserController {
     constructor(private userService: UserService) { }
 
-    @Get('get-all-users-minus-owner-and-managers')
-    async getAllUsersMinusOwnerAndManagers() {
-        return this.userService.getAllUsersMinusOwnerAndManagers();
+    @Get('get-all-users-minus-owner-and-managers/:businessId')
+    async getAllUsersMinusOwnerAndManagers(@Param('businessId') businessId: string) {
+        return this.userService.getAllUsersMinusOwnerAndManagers(businessId);
     }
 
     @Post('get-filtered-users')
-    async getFilteredUsers(@Body() body: { searchQuery: string }) {
-        const { searchQuery } = body;
-        return this.userService.getFilteredUsers(searchQuery);
+    async getFilteredUsers(@Body() body: { searchQuery: string, businessId:string }) {
+        const { searchQuery, businessId } = body;
+        return this.userService.getFilteredUsers(searchQuery, businessId);
     }
 
     @Get('getById/:userId')

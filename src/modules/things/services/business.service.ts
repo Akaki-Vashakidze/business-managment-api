@@ -35,4 +35,8 @@ export class BusinessService {
         return this.businessModel.findByIdAndUpdate(businessId, businessData, { new: true });
     }
 
+    async getAllActiveBusinesses() {
+        return this.businessModel.find({ 'record.state': 1 }).populate('owner').exec();
+    }
+
 }

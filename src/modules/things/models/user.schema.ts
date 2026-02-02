@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { BaseSchema } from "./base/base.schema";
+import mongoose, { Types } from "mongoose";
 
 @Schema()
 export class User extends BaseSchema {
@@ -24,5 +25,12 @@ export class User extends BaseSchema {
 
     @Prop({ unique: true })
     qrCode: string;
+
+    @Prop({
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Business',
+        required: true
+    })
+    business: Types.ObjectId;
 }
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -20,7 +20,7 @@ export class AuthService {
     constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
 
 async signup(signupData: SignupDto) {
-    let { email, password, code, fullName, mobileNumber } = signupData;
+    let { email, password, code, fullName, mobileNumber, business } = signupData;
     email = email.toLowerCase();
 
     const verificationRecord = await this.emailVerificationModel.findOne({
@@ -45,7 +45,8 @@ async signup(signupData: SignupDto) {
         email,
         password: hashedPassword,
         fullName,
-        mobileNumber: parseInt(mobileNumber)
+        mobileNumber: parseInt(mobileNumber),
+        business
     });
 
     // 2️⃣ use Mongo _id as QR

@@ -8,12 +8,12 @@ import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 export class UserService {
     constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
-    async getAllUsersMinusOwnerAndManagers() {
-        return this.userModel.find({ isManager: 0, isOwner: 0 }).select('-password');
+    async getAllUsersMinusOwnerAndManagers(businessId:string) {
+        return this.userModel.find({business:businessId, isManager: 0, isOwner: 0 }).select('-password');
     }
 
-    async getFilteredUsers(searchQuery: string) {
-        const users = await this.userModel.find({ fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
+    async getFilteredUsers(searchQuery: string, businessId:string) {
+        const users = await this.userModel.find({business:businessId, fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
         if (users) {
             // ApiResponse.success(users)
             return users;
