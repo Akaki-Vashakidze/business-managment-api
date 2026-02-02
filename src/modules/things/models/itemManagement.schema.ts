@@ -1,26 +1,27 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { BaseSchema } from "./base/base.schema";
-import mongoose, { Types } from "mongoose";
+import { Schema as MongooseSchema, Types } from 'mongoose';
 
 @Schema()
 export class ItemManagement extends BaseSchema {
 
     @Prop({
-        type: mongoose.Schema.Types.ObjectId,
+        type: MongooseSchema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false, // Changed from true to false
+        default: null    // Explicitly set default to null
     })
-    user: Types.ObjectId;
+    user?: Types.ObjectId | null;
 
     @Prop({
-        type: mongoose.Schema.Types.ObjectId,
+        type: MongooseSchema.Types.ObjectId,
         ref: 'Item',
         required: true
     })
     item: Types.ObjectId;
 
     @Prop({
-        type: mongoose.Schema.Types.ObjectId,
+        type: MongooseSchema.Types.ObjectId,
         ref: 'User',
         required: true
     })

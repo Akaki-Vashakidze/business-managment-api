@@ -16,10 +16,11 @@ export class ItemManagementService {
         // Convert start/end to minutes for easier comparison
         const newStart = startHour * 60 + startMinute;
         const newEnd = endHour * 60 + endMinute;
-
-        const user = await this.user.findById(ItemManagementData.user);
-        if (!user) {
-            return ApiResponse.error('This user does not exist', 400);
+        if(ItemManagementData.user !== null) {
+            const user = await this.user.findById(ItemManagementData.user);
+            if (!user) {
+                return ApiResponse.error('This user does not exist', 400);
+            }
         }
 
         // Find existing reservations for the same item and date
@@ -45,7 +46,7 @@ export class ItemManagementService {
             ...ItemManagementData,
             acceptedBy: adminId
         });
-
+        await created.populate('item');
         return { success: true, reservation: created };
     }
 

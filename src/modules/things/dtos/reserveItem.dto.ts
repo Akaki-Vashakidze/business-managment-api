@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsDate, IsNumber, IsString } from "class-validator";
+import { IsDate, IsMongoId, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class ReserveItemDto  {
 
@@ -22,8 +22,9 @@ export class ReserveItemDto  {
     @IsString()
     item: string;
 
-    @IsString()
-    user: string;
+    @IsOptional()
+    @IsMongoId()
+    user?: string | null;
 
     @IsNumber()
     isPaid: number;
