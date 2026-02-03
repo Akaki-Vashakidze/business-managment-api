@@ -18,6 +18,9 @@ import { UserController } from './controllers/user.controller';
 import { UserService } from './services/user.service';
 import { MembershipController } from './controllers/membership.controller';
 import { MembershipService } from './services/membership.service';
+import { SiteController } from './controllers/site.controller';
+import { SiteService } from './services/site.service';
+import { TasksService } from './services/task.service';
 
 dotenv.config();
 
@@ -26,8 +29,8 @@ dotenv.config();
         MongooseModule.forRoot(process.env.DB_URL!),
         MongooseModule.forFeature(MongooseModels),
     ],
-    controllers: [AuthController, BusinessController, BranchController, ItemController, ItemManagementController, UserController, MembershipController],
-    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService, ItemsService, ItemManagementService, UserService, MembershipService],
+    controllers: [AuthController, BusinessController, BranchController, ItemController, ItemManagementController, UserController, MembershipController, SiteController],
+    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService, ItemsService, ItemManagementService, UserService, MembershipService, SiteService, TasksService],
 })
 export class ThingsModule {
     constructor() {
