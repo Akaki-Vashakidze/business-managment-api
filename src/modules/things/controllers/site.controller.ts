@@ -8,7 +8,7 @@ import { SiteService } from "../services/site.service";
 
 @Controller('site')
 export class SiteController {
-    constructor(private readonly siteService: SiteService) { }
+    constructor(private readonly siteService: SiteService, private jwtTokenService:JwtTokenService) { }
 
     // @Post('get-all-item-reservations')
     // async getAllItemReservations(@Body() itemIds: {itemIds:string[]}) {
@@ -20,10 +20,20 @@ export class SiteController {
         return this.siteService.getBranchesByBusiness(businessId);
     }
 
-    @Get('get-branch-items-reservations/:branchId')
-    async getBranchItemsReservations(@Param('branchId') branchId: string) {
-        return this.siteService.getBranchItemsReservations(branchId);
+    @Post('get-branch-items-reservations')
+    async getBranchItemsReservations(@Body() body:{ branchId:string, date: Date}) {
+        return this.siteService.getBranchItemsReservations(body);
     }
 
-    
+    @Get('get-my-reservations')
+    async getMyReservations(@Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.siteService.getMyReservations(userId);
+    }
+
+    @Delete('delete-my-reservation/:reservationId')
+    async deleteMyReservation(@Param('reservationId') reservationId: string,@Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.siteService.deleteMyReservation(reservationId,userId);
+    }
 }

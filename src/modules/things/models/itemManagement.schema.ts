@@ -23,7 +23,7 @@ export class ItemManagement extends BaseSchema {
     @Prop({
         type: MongooseSchema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     })
     acceptedBy: Types.ObjectId;
 

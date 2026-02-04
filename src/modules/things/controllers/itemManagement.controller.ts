@@ -4,6 +4,7 @@ import { ReserveItemDto } from "../dtos/reserveItem.dto";
 import { Helper } from "../utils/helper";
 import { JwtTokenService } from "../services/jwt-token.service";
 import { MailService } from "../services/mail.service";
+import { ReserveItemUserDto } from "../dtos/reserveItemUser.dto";
 
 @Controller('item/management')
 export class ItemManagementController {
@@ -13,6 +14,12 @@ export class ItemManagementController {
     async reserveItemByAdmin(@Body() reserveItemData: ReserveItemDto, @Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
         return this.itemManagementService.reserveItemByAdmin(reserveItemData, userId);
+    }
+
+    @Post('reserve-item-by-user')
+    async reserveItemByUser(@Body() reserveItemUserData: ReserveItemUserDto, @Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.itemManagementService.reserveItemByUser(reserveItemUserData, userId);
     }
 
     @Get('get-reservations-by-item/:itemId')

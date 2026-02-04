@@ -19,7 +19,8 @@ export class SiteService {
         return ApiResponse.success(branches);
     }
 
-    async getBranchItemsReservations(branchId: string) {
+    async getBranchItemsReservations(body:{ branchId:string, date: Date}) {
+        const {branchId, date} = body;
         // 1. Find all active items for the branch
         const items = await this.item.find({
             branch: branchId,
@@ -33,7 +34,8 @@ export class SiteService {
         const itemIds = items.map(i => i._id);
 
         const itemReservations = await this.itemManagement.find({
-            item: { $in: itemIds }
+            item: { $in: itemIds },
+            date
         }).populate('item'); 
 
         return ApiResponse.success({
@@ -42,4 +44,20 @@ export class SiteService {
         });
     }
 
+    async getMyReservations(user:string) {
+        return this.itemManagement.find({ user });
+    }
+
+    async deleteMyReservation(reservationId: string, userId: string) {
+    let item = await this.itemManagement.findOneAndDelete({
+        _id: reservationId,
+        user: userId 
+    });
+    if(item){
+        return ApiResponse.success(item)
+    } else {
+        return ApiResponse.error('not deleted', 400)
+    }
+    
+    }
 }

@@ -50,6 +50,45 @@ export class ItemManagementService {
         return { success: true, reservation: created };
     }
 
+    async reserveItemByUser(ItemManagementData: ReserveItemDto, userId: string) {
+        const { date, startHour, startMinute, endHour, endMinute, item } = ItemManagementData;
+
+        // Convert start/end to minutes for easier comparison
+        const newStart = startHour * 60 + startMinute;
+        const newEnd = endHour * 60 + endMinute;
+        if(userId !== null) {
+            const user = await this.user.findById(userId);
+            if (!user) {
+                return ApiResponse.error('This user does not exist', 400);
+            }
+        }
+
+        // Find existing reservations for the same item and date
+        const existingReservations = await this.itemManagementModel.find({
+            item,
+            date: new Date(date)
+        });
+
+        // Check if any existing reservation overlaps
+        for (const res of existingReservations) {
+            const existingStart = res.startHour * 60 + res.startMinute;
+            const existingEnd = res.endHour * 60 + res.endMinute;
+
+            // Check for **at least 1-minute overlap**
+            if (newStart < existingEnd && newEnd > existingStart) {
+                // Overlap found
+                return { success: false, message: 'Time slot is already reserved!' };
+            }
+        }
+
+        // No overlap, create reservation
+        const created = await this.itemManagementModel.create({
+            ...ItemManagementData,
+            user: userId
+        });
+        await created.populate('item');
+        return { success: true, reservation: created };
+    }
 
     async getReservationsByItem(itemId: string) {
         return this.itemManagementModel.find({ item: itemId });
