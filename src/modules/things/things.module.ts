@@ -21,6 +21,7 @@ import { MembershipService } from './services/membership.service';
 import { SiteController } from './controllers/site.controller';
 import { SiteService } from './services/site.service';
 import { TasksService } from './services/task.service';
+import { SmsService } from './services/sms.service';
 
 dotenv.config();
 
@@ -30,7 +31,7 @@ dotenv.config();
         MongooseModule.forFeature(MongooseModels),
     ],
     controllers: [AuthController, BusinessController, BranchController, ItemController, ItemManagementController, UserController, MembershipController, SiteController],
-    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService, ItemsService, ItemManagementService, UserService, MembershipService, SiteService, TasksService],
+    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService, ItemsService, ItemManagementService, UserService, MembershipService, SiteService, TasksService, SmsService],
 })
 export class ThingsModule {
     constructor() {

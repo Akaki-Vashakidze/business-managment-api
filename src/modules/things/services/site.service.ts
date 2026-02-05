@@ -44,8 +44,15 @@ export class SiteService {
         });
     }
 
-    async getMyReservations(user:string) {
-        return this.itemManagement.find({ user });
+    async getMyReservations(user: string) {
+        // Create a date object for the start of "today"
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return this.itemManagement.find({ 
+            user,
+            date: { $gte: today } 
+        }).sort({ date: 1, startHour: 1 });
     }
 
     async deleteMyReservation(reservationId: string, userId: string) {

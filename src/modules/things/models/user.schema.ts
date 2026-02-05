@@ -8,13 +8,13 @@ export class User extends BaseSchema {
     @Prop({ required: true })
     password: string;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ required: false, unique: true })
     email: string;
 
     @Prop({ default: '', required:true })
     fullName: string;
 
-    @Prop({ required: false, unique: true })
+    @Prop({ required: true, unique: true })
     mobileNumber: number;
 
     @Prop({ default: 0 })

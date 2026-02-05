@@ -1,4 +1,4 @@
-import { IsEmail, IsMongoId, IsString, Matches, MinLength } from "class-validator";
+import { IsEmail, IsMongoId, IsOptional, IsString, Matches, MinLength } from "class-validator";
 
 export class SignupDto  {
 
@@ -9,6 +9,7 @@ export class SignupDto  {
     })
     password: string;
 
+    @IsOptional()
     @IsEmail()
     email: string;
 

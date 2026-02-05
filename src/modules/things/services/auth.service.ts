@@ -13,39 +13,40 @@ import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 import { EmailVerification } from "../models/email-verification.schema";
 import { ConfirmCodeDto } from "../dtos/confirm-code.dto";
 import { randomUUID } from 'crypto';
+import { MobileVerification } from "../models/mobile-verification.schema copy";
+import { SmsService } from "./sms.service";
+import { ConfirmCodeMobileDto } from "../dtos/confirm-code-mob.dto";
 
 
 @Injectable()
 export class AuthService {
-    constructor(private mailService: MailService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
+    constructor(private mailService: MailService, private smsService:SmsService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(MobileVerification.name) private mobileVerificationModel: Model<MobileVerification>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
 
 async signup(signupData: SignupDto) {
-    let { email, password, code, fullName, mobileNumber, business } = signupData;
-    email = email.toLowerCase();
+    let { password, code, fullName, mobileNumber, business } = signupData;
 
-    const verificationRecord = await this.emailVerificationModel.findOne({
-        email,
+    const verificationRecord = await this.mobileVerificationModel.findOne({
+        mobileNumber,
         code,
-        passwordExpire: { $gt: new Date() },
+        expiresAt: { $gt: new Date() },
     });
 
     if (!verificationRecord) {
-        throw new ApiException("Email not verified or password creation time expired", 400);
+        return new ApiException("Mobile not verified or password creation time expired", 400);
     }
 
-    const emailInUse = await this.userModel.exists({ email });
-    if (emailInUse) {
-        throw new ApiException("Email already in use", 400);
+    const MobileInUse = await this.userModel.exists({ mobileNumber });
+    if (MobileInUse) {
+        return new ApiException("Mobile already in use", 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 1️⃣ create user without qrCode
     const user = await this.userModel.create({
-        email,
+        mobileNumber: parseInt(mobileNumber),
         password: hashedPassword,
         fullName,
-        mobileNumber: parseInt(mobileNumber),
         business
     });
 
@@ -65,6 +66,30 @@ async signup(signupData: SignupDto) {
     async generateToken(userId: string) {
         const token = jwt.sign({ userId }, process.env.JWT_SECRET);
         return token;
+    }
+
+    async confirmCodeEmailMobileNumber(data: ConfirmCodeMobileDto) {
+        const mobileNumber = data.mobileNumber;
+        const code = data.code;
+
+        const record = await this.mobileVerificationModel.findOne({
+            mobileNumber,
+            code,
+            expiresAt: { $gt: new Date() },
+        });
+
+        if (!record) {
+            return new ApiException("Invalid or expired code", 400);
+        }
+
+        const passwordExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        await this.emailVerificationModel.updateOne(
+            { _id: record._id },
+            { $set: { passwordExpire } }
+        );
+
+        return ApiResponse.success('Mobile verified successfully');
     }
 
     async confirmCodeEmail(data: ConfirmCodeDto) {
@@ -113,17 +138,47 @@ async signup(signupData: SignupDto) {
         // Set expiration time (e.g. 2 minutes from now)
         const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
 
-        await this.emailVerificationModel.create({ email, code, expiresAt });
-
         await this.mailService.sendMail(
             email,
             `Your Verification Code`,
             `To continue registration, please use this code on the website: ${code}`
         );
 
+        await this.emailVerificationModel.create({ email, code, expiresAt });
+
         return ApiResponse.success('Verification code sent to email');
     }
 
+    async sendVerificationCodeMessage(mobileNumber: string) {
+        const mobileInUse = await this.userModel.exists({ mobileNumber });
+        if (mobileInUse) {
+            return new ApiException("Mobile is already in use", 400);
+        }
+        const existing = await this.mobileVerificationModel.findOne({
+            mobileNumber,
+            expiresAt: { $gt: new Date() },
+        });
+        if (existing) {
+            const now = new Date();
+            const expiresInMs = existing.expiresAt.getTime() - now.getTime();
+            const expiresInSec = Math.floor(expiresInMs / 1000);
+
+            return ApiResponse.success({ message: `Verification code already sent. You can send new one in ${expiresInSec} seconds.`, alreadySent: true });
+        }
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Set expiration time (e.g. 2 minutes from now)
+        const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+
+        await this.smsService.send(
+            mobileNumber,
+            `რეგისტრაციისთვის გამოიყენეთ კოდი: ${code}`
+        );
+
+        await this.mobileVerificationModel.create({ mobileNumber, code, expiresAt });
+
+        return ApiResponse.success('Verification code sent to mobile');
+    }
 
     async login(loginData: LoginDto) {
         let { email, password } = loginData;

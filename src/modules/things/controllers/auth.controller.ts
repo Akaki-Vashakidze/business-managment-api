@@ -9,6 +9,7 @@ import { ForgotPasswordDto } from "../dtos/forgot-password.dto";
 import { ResetPasswordDto } from "../dtos/reset-password.dto";
 import mongoose from "mongoose";
 import { ConfirmCodeDto } from "../dtos/confirm-code.dto";
+import { ConfirmCodeMobileDto } from "../dtos/confirm-code-mob.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -29,9 +30,19 @@ export class AuthController {
         return this.authService.sendVerificationCodeEmail(email);
     }
 
+    @Post('sendVerificationCodeMessage')
+    async sendVerificationCodeMessage(@Body() {email}) {
+        return this.authService.sendVerificationCodeMessage(email);
+    }
+
     @Post('confirmCodeEmail')
     async confirmCodeEmail(@Body() data:ConfirmCodeDto) {
         return this.authService.confirmCodeEmail(data);
+    }
+
+    @Post('confirmCodeMobileNumber')
+    async confirmCodeMobileNumber(@Body() data:ConfirmCodeMobileDto) {
+        return this.authService.confirmCodeEmailMobileNumber(data);
     }
 
     @UseGuards(AuthGuard)
