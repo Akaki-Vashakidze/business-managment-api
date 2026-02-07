@@ -3,6 +3,7 @@ import { ItemDto } from "../dtos/item.dto";
 import { ItemsService } from "../services/items.service";
 import { Helper } from "../utils/helper";
 import { JwtTokenService } from "../services/jwt-token.service";
+import { ObjectId } from "mongodb";
 
 @Controller('item')
 export class ItemController {
@@ -15,7 +16,7 @@ export class ItemController {
     }
 
     @Get('get-items-by-branch/:branchId')
-    async getItemsByBranch(@Param('branchId') branchId: string) {
+    async getItemsByBranch(@Param('branchId') branchId: ObjectId) {
         return this.itemsService.getItemsByBranch(branchId);
     }
 

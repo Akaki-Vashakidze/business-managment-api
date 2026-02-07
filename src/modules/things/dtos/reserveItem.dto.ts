@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsDate, IsMongoId, IsNumber, IsOptional, IsString } from "class-validator";
+import { ObjectId } from "mongodb";
 
 export class ReserveItemDto  {
 
@@ -21,6 +22,9 @@ export class ReserveItemDto  {
 
     @IsString()
     item: string;
+
+    @IsString()
+    branchId: ObjectId;
 
     @IsOptional()
     @IsMongoId()

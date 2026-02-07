@@ -69,8 +69,24 @@ async checkIn(
     //     return ApiResponse.error('ALREADY_VISITED_TODAY', 400);
     // }
 
+    // const available = await this.itemManagementService.isItemAvailable(
+    //     itemManagementData.item,
+    //     itemManagementData.date,
+    //     itemManagementData.startHour,
+    //     itemManagementData.startMinute,
+    //     itemManagementData.endHour,
+    //     itemManagementData.endMinute
+    // );
+
+    // if (!available) {
+    //     return {
+    //         success: false,
+    //         message: 'This station is already occupied for the selected time.'
+    //     };
+    // }
+
     let itemReserve = await this.itemManagementService.reserveItemByAdmin(itemManagementData,staffId)
-    console.log(itemReserve)
+
     if(!itemReserve) {
         return 'error'
     }
@@ -86,7 +102,7 @@ async checkIn(
     // 7️⃣ Decrease remaining visits
     membership.remainingVisits -= 1;
     await membership.save();
-
+    
     // 8️⃣ Return response
     return {
         success: true,

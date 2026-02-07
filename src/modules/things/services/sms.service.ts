@@ -13,7 +13,7 @@ export class SmsService {
     }
 
 
-    async send(destination: string, message: string) {
+    async send(destination: any, message: string) {
         try {
             const { data } = await this.axiosClient.get(`send?key=${process.env.SMS_OFFICE_API_KEY}&destination=${destination}&sender=${SMS_AUTHOR_NAME}&content=${message}`)
 

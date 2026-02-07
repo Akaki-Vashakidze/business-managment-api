@@ -5,12 +5,13 @@ import { Helper } from "../utils/helper";
 import { JwtTokenService } from "../services/jwt-token.service";
 import { MailService } from "../services/mail.service";
 import { ReserveItemUserDto } from "../dtos/reserveItemUser.dto";
+import { SmsService } from "../services/sms.service";
 
 @Controller('item/management')
 export class ItemManagementController {
-    constructor(private readonly itemManagementService: ItemManagementService, private jwtTokenService: JwtTokenService, private mailService:MailService) { }
+    constructor(private smsService:SmsService,private readonly itemManagementService: ItemManagementService, private jwtTokenService: JwtTokenService, private mailService:MailService) { }
 
-    @Post('reserve-item')
+    @Post('reserve-item-by-admin')
     async reserveItemByAdmin(@Body() reserveItemData: ReserveItemDto, @Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
         return this.itemManagementService.reserveItemByAdmin(reserveItemData, userId);
@@ -48,9 +49,4 @@ export class ItemManagementController {
         return this.itemManagementService.markItemAsPaid(itemManagingId)
     }
 
-    @Post('send-finishedReservation-mail')
-    async sendEmailAbourReservation(@Body() body: {email:string, subject:string, text:string}){
-        let {email, subject, text} = body;
-        return this.mailService.sendMail(email,subject,text)
-    }
 }

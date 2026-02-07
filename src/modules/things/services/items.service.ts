@@ -5,6 +5,7 @@ import { Item } from "../models/item.schema";
 import { ItemDto } from "../dtos/item.dto";
 import { BusinessBranch } from "../models/businessBranch";
 import { ItemManagement } from "../models/itemManagement.schema";
+import { ObjectId } from "mongodb";
 
 @Injectable()
 export class ItemsService {
@@ -32,7 +33,7 @@ export class ItemsService {
         return Item;
     }
 
-    async getItemsByBranch(branch: string) {
+    async getItemsByBranch(branch: ObjectId) {
         return this.ItemModel.find({ branch });
     }
 
@@ -41,8 +42,13 @@ export class ItemsService {
         return this.ItemModel.findByIdAndDelete(ItemId);
     }   
 
+    async getItemById(itemId: string) {
+        return this.ItemModel.findById(itemId);
+    }
+
     async updateItem(ItemId: string, ItemData: {name}) {
         return this.ItemModel.findByIdAndUpdate(ItemId, ItemData, { new: true });
     }
+
 
 }

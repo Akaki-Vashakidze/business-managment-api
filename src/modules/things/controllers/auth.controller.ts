@@ -53,10 +53,10 @@ export class AuthController {
 
     @Post('forgot-password')
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-        return this.authService.forgotPassword(forgotPasswordDto.email);
+        return this.authService.forgotPassword(forgotPasswordDto.mobileNumber);
     }
 
-    @Put('reset-password')
+    @Post('reset-password')
     async resetPassword(@Body() resetData: ResetPasswordDto) {
         return this.authService.resetPassword(resetData.accessToken, resetData.newPassword);
     }

@@ -20,48 +20,46 @@ import { ConfirmCodeMobileDto } from "../dtos/confirm-code-mob.dto";
 
 @Injectable()
 export class AuthService {
-    constructor(private mailService: MailService, private smsService:SmsService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(MobileVerification.name) private mobileVerificationModel: Model<MobileVerification>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
+    constructor(private mailService: MailService, private smsService: SmsService, @InjectModel(User.name) private userModel: Model<User>, @InjectModel(MobileVerification.name) private mobileVerificationModel: Model<MobileVerification>, @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerification>, @InjectModel(AccessToken.name) private accessTokenModel: Model<AccessToken>) { }
 
-async signup(signupData: SignupDto) {
-    let { password, code, fullName, mobileNumber, business } = signupData;
+    async signup(signupData: SignupDto) {
+        let { password, code, fullName, mobileNumber, business } = signupData;
 
-    const verificationRecord = await this.mobileVerificationModel.findOne({
-        mobileNumber,
-        code,
-        expiresAt: { $gt: new Date() },
-    });
+        const verificationRecord = await this.mobileVerificationModel.findOne({
+            mobileNumber,
+            code,
+            expiresAt: { $gt: new Date() },
+        });
 
-    if (!verificationRecord) {
-        return new ApiException("Mobile not verified or password creation time expired", 400);
+        if (!verificationRecord) {
+            return new ApiException("Mobile not verified or password creation time expired", 400);
+        }
+
+        const MobileInUse = await this.userModel.exists({ mobileNumber });
+        if (MobileInUse) {
+            return new ApiException("Mobile already in use", 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // 1️⃣ create user without qrCode
+        const user = await this.userModel.create({
+            mobileNumber: parseInt(mobileNumber),
+            password: hashedPassword,
+            fullName,
+            business
+        });
+
+        // 2️⃣ use Mongo _id as QR
+        user.qrCode = user._id.toString();
+        await user.save();
+
+        const accessToken = await this.generateToken(user._id.toString());
+
+        await this.storeAccessToken(user._id, accessToken);
+
+        return { user, token: accessToken };
     }
-
-    const MobileInUse = await this.userModel.exists({ mobileNumber });
-    if (MobileInUse) {
-        return new ApiException("Mobile already in use", 400);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 1️⃣ create user without qrCode
-    const user = await this.userModel.create({
-        mobileNumber: parseInt(mobileNumber),
-        password: hashedPassword,
-        fullName,
-        business
-    });
-
-    // 2️⃣ use Mongo _id as QR
-    user.qrCode = user._id.toString();
-    await user.save();
-
-    const accessToken = await this.generateToken(user._id.toString());
-
-    await this.storeAccessToken(user._id, accessToken);
-
-    return { user, token: accessToken };
-}
-
-
 
     async generateToken(userId: string) {
         const token = jwt.sign({ userId }, process.env.JWT_SECRET);
@@ -250,23 +248,34 @@ async signup(signupData: SignupDto) {
         return { message: "Password changed successfully" };
     }
 
-    async forgotPassword(email: string) {
-        const user = await this.userModel.findOne({ email });
+async forgotPassword(mobileNumber: string) {
+        const user = await this.userModel.findOne({ mobileNumber });
+        
+        // Security Tip: In production, you might return 200 even if the user isn't found
+        // to prevent "account enumeration" attacks.
         if (!user) {
-            return new ApiException("Email not found", 404);
-        } else {
-
-            const accessToken = this.generateToken(user._id.toString());
-            await this.accessTokenModel.create({
-                token: accessToken,
-                user: user._id,
-                expiryDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hour
-            });
-            this.mailService.sendMail(user.email, "Password Reset Request", `To reset your password, please click the link below:\n\nhttp://yourapp.com/reset-password?token=${accessToken}`, `<p>To reset your password, please click the link below:</p><p><a href="http://yourapp.com/reset-password?token=${accessToken}">Reset Password</a></p>`);
-            return {
-                message: "If this email is registered, a password reset link will be sent to it."
-            };
+            return new ApiException("mobile number not found", 404);
         }
+
+        // Fix: Await the promise so we get the string token, not a Promise object
+        const accessToken = await this.generateToken(user._id.toString());
+
+        await this.accessTokenModel.create({
+            token: accessToken,
+            user: user._id,
+            expiryDate: new Date(Date.now() + 1 * 60 * 60 * 1000) // 1 hour
+        });
+
+        // Note: Your backend code uses user.email, ensure your SMS service 
+        // handles email if that's intended, or change to user.mobileNumber
+        this.smsService.send(
+            user.mobileNumber, 
+            `Your reset token is: ${accessToken} or click: /reset-password?token=${accessToken}`
+        );
+
+        return {
+            message: "If this number is registered, a password reset link will be sent to it."
+        };
     }
 
     async resetPassword(token: string, newPassword: string) {
