@@ -23,6 +23,9 @@ export class User extends BaseSchema {
     @Prop({ default: 0 })
     isOwner: number;
 
+    @Prop({ required:false})
+    isActiveAdmin: number;
+
     @Prop({ unique: true })
     qrCode: string;
 

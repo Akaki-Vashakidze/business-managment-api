@@ -30,4 +30,44 @@ export class UserService {
             ApiResponse.error('users not found', 400)
         }
     }
+
+    async makeAdminActive(adminId: string) {
+        // 1. Set isActiveAdmin to 0 for all Owners and Managers
+        await this.userModel.updateMany(
+            { 
+                $or: [{ isOwner: 1 }, { isManager: 1 }] 
+            },
+            { 
+                $set: { isActiveAdmin: 0 } 
+            }
+        );
+
+        // 2. Set the specific admin to active
+        const user = await this.userModel.findByIdAndUpdate(
+            adminId,
+            { $set: { isActiveAdmin: 1 } },
+            { new: true }
+        );
+
+        if (!user) {
+            return ApiResponse.error(`User with ID ${adminId} not found`, 400);
+        }
+
+        return user;
+    }
+
+
+async checkIfAdminIsActive(adminId: string): Promise<boolean> {
+    const user = await this.userModel.findById(adminId)
+        .select('isActiveAdmin') // Only fetch this field for better performance
+        .lean(); // Returns a plain JS object instead of a heavy Mongoose document
+
+    if (!user) {
+        return false;
+    }
+
+    // Returns true if isActiveAdmin is 1, false otherwise
+    return user.isActiveAdmin === 1;
+}
+    
 }
