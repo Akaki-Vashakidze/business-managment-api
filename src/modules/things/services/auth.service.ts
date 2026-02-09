@@ -179,18 +179,20 @@ export class AuthService {
     }
 
     async login(loginData: LoginDto) {
-        let { email, password } = loginData;
-        let user = await this.userModel.findOne({ email });
+        let { mobile, password } = loginData;
+        let user = await this.userModel.findOne({ mobileNumber:mobile });
+
         if (!user) {
-            email = email.toLowerCase();
-            user = await this.userModel.findOne({ email: email });
+            return new ApiException("Invalid mobile or password", 400);
         }
-        if (!user) {
-            return new ApiException("Invalid email or password", 400);
+
+        if(user.record.state == 0){
+            return new ApiException("User is blocked", 400);
         }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return new ApiException("Invalid email or password", 401);
+            return new ApiException("Invalid mobile or password", 401);
         }
         const accessToken = this.generateToken(user._id.toString());
         try {
