@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "../services/user.service";
 import { Helper } from "../utils/helper";
 import { JwtTokenService } from "../services/jwt-token.service";
 import { AdminService } from "../services/admin.service";
+import { AdminGuard } from "../guards/admin.guard";
 
+@UseGuards(AdminGuard)
 @Controller('admin')
 export class AdminController {
     constructor(private adminService: AdminService, private jwtTokenService:JwtTokenService) { }

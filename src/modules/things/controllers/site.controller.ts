@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { ItemDto } from "../dtos/item.dto";
 import { ItemsService } from "../services/items.service";
 import { Helper } from "../utils/helper";
 import { JwtTokenService } from "../services/jwt-token.service";
 import { ItemManagementService } from "../services/itemManagement.service";
 import { SiteService } from "../services/site.service";
+import { AuthGuard } from "../guards/auth.guard";
 
 @Controller('site')
 export class SiteController {
@@ -15,22 +16,26 @@ export class SiteController {
     //     return this.itemManagementService.getAllItemReservations(itemIds.itemIds);
     // }
 
+    @UseGuards(AuthGuard)
     @Get('get-business-branches/:business')
     async getReservationsByItem(@Param('business') businessId: string) {
         return this.siteService.getBranchesByBusiness(businessId);
     }
 
+    @UseGuards(AuthGuard)
     @Post('get-branch-items-reservations')
     async getBranchItemsReservations(@Body() body:{ branchId:string, date: Date}) {
         return this.siteService.getBranchItemsReservations(body);
     }
 
+    @UseGuards(AuthGuard)
     @Get('get-my-reservations')
     async getMyReservations(@Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
         return this.siteService.getMyReservations(userId);
     }
 
+    @UseGuards(AuthGuard)
     @Delete('delete-my-reservation/:reservationId')
     async deleteMyReservation(@Param('reservationId') reservationId: string,@Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
