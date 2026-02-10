@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { ItemManagementService } from "../services/itemManagement.service";
 import { ReserveItemDto } from "../dtos/reserveItem.dto";
 import { Helper } from "../utils/helper";
@@ -15,6 +15,12 @@ export class ItemManagementController {
     async reserveItemByAdmin(@Body() reserveItemData: ReserveItemDto, @Req() req: Request) {
         const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
         return this.itemManagementService.reserveItemByAdmin(reserveItemData, userId);
+    }
+
+    @Delete('delete/:id')
+    async deleteReservation(@Param('id') reservationId: string, @Req() req: Request) {
+        const userId = Helper.getUserIdFromHeaderToken(req, this.jwtTokenService);
+        return this.itemManagementService.deleteReservation(reservationId, userId);
     }
 
     @Post('reserve-item-by-user')

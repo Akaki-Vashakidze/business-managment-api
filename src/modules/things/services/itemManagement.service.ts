@@ -73,6 +73,31 @@ async reserveItemByAdmin(ItemManagementData: ReserveItemDto, adminId: string) {
     return { success: true, reservation: created };
 }
 
+async deleteReservation(_id: string, adminId: string) {
+    // 1. Find the reservation and update it to a deleted state
+    const deleted = await this.itemManagementModel.findByIdAndUpdate(
+        _id,
+        { 
+            $set: { 
+                'record.isDeleted': 1,
+                'record.state': 0, 
+            } 
+        },
+        { new: true }
+    );
+
+    // 2. Check if the reservation existed
+    if (!deleted) {
+        return { 
+            success: false, 
+            message: 'Reservation not found or already deleted' 
+        };
+    }
+
+    // 3. Return a consistent response format
+    return ApiResponse.success(deleted);
+}
+
 async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) {
     const { date, startHour, startMinute, endHour, endMinute, item } = ItemManagementData;
 
@@ -152,7 +177,8 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
 
         // Find reservations for all items in the array
         const reservations = await this.itemManagementModel.find({
-            item: { $in: itemIds }
+            item: { $in: itemIds },
+            'record.isDeleted': 0
         })
             .sort({ date: 1, startHour: 1, startMinute: 1 }) // sort by date and start time
             .populate('user', 'fullName')   // optional: populate user info
@@ -177,7 +203,8 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
             date: {
                 $gte: startOfToday,
                 $lt: startOfTomorrow
-            }
+            },
+            'record.isDeleted': 0
         })
             .sort({ startHour: 1, startMinute: 1 })
             .populate('user', 'fullName mobileNumber email')
