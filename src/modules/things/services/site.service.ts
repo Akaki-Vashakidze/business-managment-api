@@ -7,16 +7,22 @@ import { User } from "../models/user.schema";
 import { ApiResponse } from "src/modules/base/classes/ApiResponse.class";
 import { BusinessBranch } from "../models/businessBranch";
 import { Item } from "../models/item.schema";
+import { Business } from "../models/business.schema";
 
 @Injectable()
 export class SiteService {
-    constructor(@InjectModel(BusinessBranch.name) private businessBranch: Model<BusinessBranch>, @InjectModel(ItemManagement.name) private itemManagement: Model<ItemManagement>,@InjectModel(Item.name) private item: Model<Item>) { }
+    constructor(@InjectModel(Business.name) private businessModel: Model<Business>,@InjectModel(BusinessBranch.name) private businessBranch: Model<BusinessBranch>, @InjectModel(ItemManagement.name) private itemManagement: Model<ItemManagement>,@InjectModel(Item.name) private item: Model<Item>) { }
 
     async getBranchesByBusiness(business: string) {
         const branches = await this.businessBranch.find({
             business
         })
         return ApiResponse.success(branches);
+    }
+
+    async getExistingBusiness() {
+        const business = await this.businessModel.findOne();
+        return ApiResponse.success(business);
     }
 
     async getBranchItemsReservations(body:{ branchId:string, date: Date}) {

@@ -16,13 +16,18 @@ export class SiteController {
     //     return this.itemManagementService.getAllItemReservations(itemIds.itemIds);
     // }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Get('get-business-branches/:business')
     async getReservationsByItem(@Param('business') businessId: string) {
         return this.siteService.getBranchesByBusiness(businessId);
     }
 
-    @UseGuards(AuthGuard)
+    @Get('get-existing-business')
+    async getExistingBusiness() {
+        return this.siteService.getExistingBusiness();
+    }
+
+    // @UseGuards(AuthGuard)
     @Post('get-branch-items-reservations')
     async getBranchItemsReservations(@Body() body:{ branchId:string, date: Date}) {
         return this.siteService.getBranchItemsReservations(body);
