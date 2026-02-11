@@ -187,6 +187,25 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
         return reservations;
     }
 
+    async getAllItemFutureReservations(itemIds: string[]) {
+        if (!itemIds || itemIds.length === 0) return [];
+
+        // Get the start of today (00:00:00) to include all of today's bookings
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const reservations = await this.itemManagementModel.find({
+            item: { $in: itemIds },
+            'record.isDeleted': 0,
+            date: { $gte: startOfToday } // Filter: Date must be Greater Than or Equal to today
+        })
+            .sort({ date: 1, startHour: 1, startMinute: 1 })
+            .populate('user', 'fullName')
+            .populate('item', 'name');
+        
+        return reservations;
+    }
+
     async getAllItemReservationsForTodayDate(itemIds: string[]) {
         if (!itemIds || itemIds.length === 0) return [];
 

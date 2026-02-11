@@ -53,6 +53,12 @@ export class ItemManagementController {
     }
 
     @UseGuards(AuthGuard)
+    @Post('get-all-item-future-reservations')
+    async getAllItemFutureReservations(@Body() itemIds: {itemIds:string[]}) {
+        return this.itemManagementService.getAllItemFutureReservations(itemIds.itemIds);
+    }
+
+    @UseGuards(AuthGuard)
     @Post('get-all-item-reservations-for-today')
     async getAllItemReservationsForTodayDate(@Body() itemIds: {itemIds:string[]}) {
         return this.itemManagementService.getAllItemReservationsForTodayDate(itemIds.itemIds);
