@@ -25,7 +25,6 @@ export class BusinessController {
         return this.businessService.getBusinessesByOwner(userId);
     }
 
-    @UseGuards(AuthGuard)
     @Get('get-all-businesses')
     async getAllBusinesses() {
         return this.businessService.getAllActiveBusinesses();
