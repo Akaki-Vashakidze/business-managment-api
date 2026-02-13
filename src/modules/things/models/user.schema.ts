@@ -8,7 +8,9 @@ export class User extends BaseSchema {
     @Prop({ required: true })
     password: string;
 
-    @Prop({ required: false, unique: true })
+    @Prop({ 
+        required: false
+    })
     email: string;
 
     @Prop({ default: '', required:true })
@@ -29,11 +31,11 @@ export class User extends BaseSchema {
     @Prop({ unique: true })
     qrCode: string;
 
-    @Prop({
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Business',
-        required: true
-    })
-    business: Types.ObjectId;
+    // @Prop({
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Business',
+    //     required: true
+    // })
+    // business: Types.ObjectId;
 }
 export const UserSchema = SchemaFactory.createForClass(User);

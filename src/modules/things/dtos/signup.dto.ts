@@ -16,7 +16,7 @@ export class SignupDto  {
     @IsString()
     fullName: string;
 
-    @IsMongoId()
+    @IsOptional()
     business: string;
 
     @IsString()
