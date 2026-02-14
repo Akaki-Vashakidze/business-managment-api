@@ -26,6 +26,7 @@ import { AdminService } from './services/admin.service';
 import { AdminController } from './controllers/admin.controller';
 import { AnalyticsService } from './services/analytics.service';
 import { VisitorMiddleware } from './middlewares/visitor.middleware'; 
+import { AnalyticsController } from './controllers/analytics.controller';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ dotenv.config();
         MembershipController, 
         SiteController, 
         AdminController,
+        AnalyticsController
     ],
     providers: [
         AuthService, 
