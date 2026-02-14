@@ -1,7 +1,7 @@
-
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'; // Added MiddlewareConsumer & NestModule
 import { MongooseModule } from '@nestjs/mongoose';
-import MongooseModels from './models';import * as dotenv from 'dotenv'; 
+import MongooseModels from './models';
+import * as dotenv from 'dotenv'; 
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { MailService } from './services/mail.service';
@@ -24,6 +24,8 @@ import { TasksService } from './services/task.service';
 import { SmsService } from './services/sms.service';
 import { AdminService } from './services/admin.service';
 import { AdminController } from './controllers/admin.controller';
+import { AnalyticsService } from './services/analytics.service';
+import { VisitorMiddleware } from './middlewares/visitor.middleware'; 
 
 dotenv.config();
 
@@ -32,10 +34,42 @@ dotenv.config();
         MongooseModule.forRoot(process.env.DB_URL!),
         MongooseModule.forFeature(MongooseModels),
     ],
-    controllers: [AuthController, BusinessController, BranchController, ItemController, ItemManagementController, UserController, MembershipController, SiteController, AdminController],
-    providers: [AuthService, MailService, JwtTokenService, BusinessService, BranchesService, ItemsService, ItemManagementService, UserService, MembershipService, SiteService, TasksService, SmsService, AdminService],
+    controllers: [
+        AuthController, 
+        BusinessController, 
+        BranchController, 
+        ItemController, 
+        ItemManagementController, 
+        UserController, 
+        MembershipController, 
+        SiteController, 
+        AdminController,
+    ],
+    providers: [
+        AuthService, 
+        MailService, 
+        JwtTokenService, 
+        BusinessService, 
+        BranchesService, 
+        ItemsService, 
+        ItemManagementService, 
+        UserService, 
+        MembershipService, 
+        SiteService, 
+        TasksService, 
+        SmsService, 
+        AdminService, 
+        AnalyticsService
+    ],
 })
-export class ThingsModule {
-    constructor() {
+// Change this line to implement NestModule
+export class ThingsModule implements NestModule {
+    constructor() {}
+
+    // Add this method to register the middleware
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(VisitorMiddleware)
+            .forRoutes('*'); // This will track every request to every controller
     }
 }

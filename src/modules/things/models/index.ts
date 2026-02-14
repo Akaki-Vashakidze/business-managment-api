@@ -9,6 +9,7 @@ import { Membership, MembershipSchema } from "./membership.schema";
 import { MobileVerification, MobileVerificationSchema } from "./mobile-verification.schema copy";
 import { User, UserSchema } from "./user.schema";
 import { Visit, VisitSchema } from "./visit.schema";
+import { Visitor, VisitorSchema } from "./visitor.schema";
 
 const MongooseModels = [
   { name: User.name, schema: UserSchema },
@@ -21,6 +22,7 @@ const MongooseModels = [
   { name: ItemManagement.name, schema: ItemManagementSchema },
   { name: Membership.name, schema: MembershipSchema },
   { name: Visit.name, schema: VisitSchema },
+  { name: Visitor.name, schema: VisitorSchema },
 ];
 
 export default MongooseModels;
