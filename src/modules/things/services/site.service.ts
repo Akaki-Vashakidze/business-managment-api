@@ -30,7 +30,8 @@ export class SiteService {
         // 1. Find all active items for the branch
         const items = await this.item.find({
             branch: branchId,
-            'record.state': 1
+            'record.state': 1,
+            'record.isDeleted':0
         });
 
         if (!items || items.length === 0) {

@@ -13,7 +13,8 @@ export class AdminService {
     }
 
     async getFilteredUsers(searchQuery: string, businessId: string) {
-        const users = await this.userModel.find({ business: businessId, fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
+        //todo find by business
+        const users = await this.userModel.find({ fullName: { $regex: searchQuery, $options: 'i' } }).select('-password');
         if (users) {
             // ApiResponse.success(users)
             return users;

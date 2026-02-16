@@ -9,25 +9,26 @@ import { BusinessDto } from "../dtos/business.dto";
 export class BusinessService {
  constructor(@InjectModel(Business.name) private businessModel: Model<Business>) { }
 
-    async createBusiness(businessData: BusinessDto, ownerId: string) { 
-        const { name } = businessData;
-        const business = await this.businessModel.create({
-            name,
-            owner: ownerId
-        });
-        return business;
-    }
+async createBusiness(businessData: BusinessDto, ownerId: string) { 
+    const { name } = businessData;
+    
+    const business = await this.businessModel.create({
+        name,
+        owners: [ownerId]
+    });
+    
+    return business;
+}
 
     async getBusinessById(businessId: string) {
         return this.businessModel.findById(businessId);
     }   
 
     async getBusinessesByOwner(ownerId: string) {
-        return this.businessModel.find({ owner: ownerId });
+        return this.businessModel.find({ owners: ownerId }).exec();
     }
 
     async deleteBusiness(businessId: string) {
-        console.log("Deleting business with ID:", businessId);
         return this.businessModel.findByIdAndDelete(businessId);
     }   
 
@@ -36,7 +37,10 @@ export class BusinessService {
     }
 
     async getAllActiveBusinesses() {
-        return this.businessModel.find({ 'record.state': 1 }).populate('owner').exec();
+        return this.businessModel
+            .find({ 'record.state': 1 })
+            .populate('owners')
+            .exec();
     }
 
 }

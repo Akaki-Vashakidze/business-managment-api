@@ -16,4 +16,17 @@ export class UserService {
             ApiResponse.error('users not found', 400)
         }
     }
+
+    async deleteUser(id: string) {
+        const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
+
+        if (!deletedUser) {
+            return ApiResponse.error('User not found or already deleted', 404);
+        }
+
+        return ApiResponse.success({
+            message: 'User permanently deleted',
+            deletedId: id
+        });
+    }
 }

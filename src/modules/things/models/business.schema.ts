@@ -9,11 +9,11 @@ export class Business extends BaseSchema {
     name: string;
 
     @Prop({
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        required: true,
+        default: [] 
     })
-    owner: Types.ObjectId;
+    owners: Types.ObjectId[];
 
 }
 

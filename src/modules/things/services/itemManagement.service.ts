@@ -74,28 +74,16 @@ async reserveItemByAdmin(ItemManagementData: ReserveItemDto, adminId: string) {
 }
 
 async deleteReservation(_id: string, adminId: string) {
-    // 1. Find the reservation and update it to a deleted state
-    const deleted = await this.itemManagementModel.findByIdAndUpdate(
-        _id,
-        { 
-            $set: { 
-                'record.isDeleted': 1,
-                'record.state': 0, 
-            } 
-        },
-        { new: true }
-    );
+    const deleted = await this.itemManagementModel.findByIdAndDelete(_id).exec();
 
-    // 2. Check if the reservation existed
     if (!deleted) {
         return { 
             success: false, 
-            message: 'Reservation not found or already deleted' 
+            message: 'Reservation not found' 
         };
     }
 
-    // 3. Return a consistent response format
-    return ApiResponse.success(deleted);
+    return ApiResponse.success({ message: 'Reservation permanently removed', id: _id });
 }
 
 async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) {
