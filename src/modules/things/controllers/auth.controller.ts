@@ -31,8 +31,8 @@ export class AuthController {
     }
 
     @Post('sendVerificationCodeMessage')
-    async sendVerificationCodeMessage(@Body() {email}) {
-        return this.authService.sendVerificationCodeMessage(email);
+    async sendVerificationCodeMessage(@Body() {mobile}) {
+        return this.authService.sendVerificationCodeMessage(mobile);
     }
 
     @Post('confirmCodeEmail')
