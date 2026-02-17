@@ -272,7 +272,7 @@ async forgotPassword(mobileNumber: string) {
         // handles email if that's intended, or change to user.mobileNumber
         this.smsService.send(
             user.mobileNumber, 
-            `Your reset token is: ${accessToken} or click: /reset-password?token=${accessToken}`
+            `Click this link to reset password - https://gametime1.ge/#/newpass${accessToken}`
         );
 
         return {
