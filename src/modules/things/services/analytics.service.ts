@@ -7,7 +7,7 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(@InjectModel(Visitor.name) private visitorModel: Model<Visitor>) {}
+  constructor(@InjectModel(Visitor.name) private visitorModel: Model<Visitor>) { }
 
   async trackVisit(ip: string, userAgent: string) {
     // Fix for "not constructable" error: access the constructor specifically
@@ -36,7 +36,7 @@ export class AnalyticsService {
 
   async getAdminStats() {
     const totalUnique = await this.visitorModel.countDocuments();
-    
+
     // Aggregation to get device counts (e.g., mobile: 50, desktop: 20)
     const deviceStats = await this.visitorModel.aggregate([
       { $group: { _id: '$deviceType', count: { $sum: 1 } } },
@@ -49,17 +49,31 @@ export class AnalyticsService {
   }
 
   async getTodaysUniqueUsers() {
-  // Generate a Date object for the start of today (local time)
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+    // Generate a Date object for the start of today (local time)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-  // Count documents where lastVisit is greater than or equal to the start of today
-  const count = await this.visitorModel.countDocuments({
-    lastVisit: { $gte: startOfToday },
-  });
+    // Count documents where lastVisit is greater than or equal to the start of today
+    const count = await this.visitorModel.countDocuments({
+      lastVisit: { $gte: startOfToday },
+    });
 
-  return {
-    todayUniqueUsers: count,
-  };
-}
+    return {
+      todayUniqueUsers: count,
+    };
+  }
+
+  async getLastWeekUniqueUsers() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const count = await this.visitorModel.countDocuments({
+      lastVisit: { $gte: sevenDaysAgo },
+    });
+
+    return {
+      lastWeekUniqueUsers: count,
+    };
+  }
 }

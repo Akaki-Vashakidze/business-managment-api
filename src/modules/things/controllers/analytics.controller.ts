@@ -14,4 +14,10 @@ export class AnalyticsController {
   async getTodaysUniqueUsers() {
     return await this.analyticsService.getTodaysUniqueUsers();
   }
+
+  @Get('stats/last-week')
+  async getLastWeekUniqueUsers() {
+    return await this.analyticsService.getLastWeekUniqueUsers();
+  } 
+
 }
