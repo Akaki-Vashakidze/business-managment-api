@@ -18,7 +18,6 @@ export class BranchController {
         return this.branchesService.createBranch(BranchData, userId);
     }
 
-    @UseGuards(AuthGuard)
     @Get('get-branches-by-business/:businessId')
     async getBranchesByBusiness(@Param('businessId') businessId: string) {
         return this.branchesService.getBranchesByBusiness(businessId);
