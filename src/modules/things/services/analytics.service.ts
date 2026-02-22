@@ -47,4 +47,19 @@ export class AnalyticsService {
       devices: deviceStats,
     };
   }
+
+  async getTodaysUniqueUsers() {
+  // Generate a Date object for the start of today (local time)
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  // Count documents where lastVisit is greater than or equal to the start of today
+  const count = await this.visitorModel.countDocuments({
+    lastVisit: { $gte: startOfToday },
+  });
+
+  return {
+    todayUniqueUsers: count,
+  };
+}
 }
