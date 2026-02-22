@@ -9,4 +9,9 @@ export class AnalyticsController {
   async getStats() {
     return await this.analyticsService.getAdminStats();
   }
+
+  @Get('stats/today')
+  async getTodaysUniqueUsers() {
+    return await this.analyticsService.getTodaysUniqueUsers();
+  }
 }
