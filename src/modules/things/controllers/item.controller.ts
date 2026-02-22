@@ -18,7 +18,6 @@ export class ItemController {
         return this.itemsService.createItem(itemData, userId);
     }
 
-    @UseGuards(AuthGuard)
     @Get('get-items-by-branch/:branchId')
     async getItemsByBranch(@Param('branchId') branchId: ObjectId) {
         return this.itemsService.getItemsByBranch(branchId);
