@@ -48,6 +48,9 @@ export class ItemManagement extends BaseSchema {
     @Prop({ default: 0 })
     accepted: number;
 
+    @Prop({ default: 2 })
+    persons: number;
+
 }
 
 export const ItemManagementSchema = SchemaFactory.createForClass(ItemManagement);

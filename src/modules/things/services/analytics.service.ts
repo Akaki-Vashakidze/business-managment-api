@@ -7,73 +7,80 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(@InjectModel(Visitor.name) private visitorModel: Model<Visitor>) { }
+  constructor(@InjectModel(Visitor.name) private visitorModel: Model<Visitor>) {}
 
-  async trackVisit(ip: string, userAgent: string) {
-    // Fix for "not constructable" error: access the constructor specifically
+  async trackVisit(ip: string, userAgent: string, cookieId?: string) {
     const parser = new UAParserJs.UAParser(userAgent);
     const result = parser.getResult();
 
-    // Create a unique hash to identify the unique user/device
+    // Use SHA256 for better collision resistance than MD5
     const fingerprint = crypto
-      .createHash('md5')
+      .createHash('sha256')
       .update(`${ip}-${userAgent}`)
       .digest('hex');
 
-    // Upsert: Find by fingerprint, update details if it exists, or create new if not.
+    // Identity priority: Cookie ID > Fingerprint
+    const identity = cookieId || fingerprint;
+
     return await this.visitorModel.findOneAndUpdate(
-      { fingerprint },
+      { visitorId: identity },
       {
-        ip,
-        browser: result.browser.name || 'Unknown',
-        os: result.os.name || 'Unknown',
-        deviceType: result.device.type || 'desktop',
-        lastVisit: new Date(),
+        $set: {
+          ip,
+          fingerprint,
+          browser: result.browser.name || 'Unknown',
+          os: result.os.name || 'Unknown',
+          deviceType: result.device.type || 'desktop',
+          lastVisit: new Date(),
+        },
+        $inc: { totalVisits: 1 },
       },
       { upsert: true, new: true },
     );
   }
 
   async getAdminStats() {
-    const totalUnique = await this.visitorModel.countDocuments();
+    const stats = await this.visitorModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalUniqueUsers: { $sum: 1 },
+          totalPageHits: { $sum: '$totalVisits' },
+        },
+      },
+    ]);
 
-    // Aggregation to get device counts (e.g., mobile: 50, desktop: 20)
     const deviceStats = await this.visitorModel.aggregate([
       { $group: { _id: '$deviceType', count: { $sum: 1 } } },
     ]);
 
     return {
-      totalUniqueUsers: totalUnique,
+      totalUniqueUsers: stats[0]?.totalUniqueUsers || 0,
+      totalPageHits: stats[0]?.totalPageHits || 0,
       devices: deviceStats,
     };
   }
 
   async getTodaysUniqueUsers() {
-    // Generate a Date object for the start of today (local time)
     const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    startOfToday.setUTCHours(0, 0, 0, 0); // Use UTC for 99.9% accuracy
 
-    // Count documents where lastVisit is greater than or equal to the start of today
     const count = await this.visitorModel.countDocuments({
       lastVisit: { $gte: startOfToday },
     });
 
-    return {
-      todayUniqueUsers: count,
-    };
+    return { todayUniqueUsers: count };
   }
 
   async getLastWeekUniqueUsers() {
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
 
     const count = await this.visitorModel.countDocuments({
       lastVisit: { $gte: sevenDaysAgo },
     });
 
-    return {
-      lastWeekUniqueUsers: count,
-    };
+    return { lastWeekUniqueUsers: count };
   }
 }

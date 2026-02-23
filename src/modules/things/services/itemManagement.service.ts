@@ -87,40 +87,61 @@ async deleteReservation(_id: string, adminId: string) {
 }
 
 async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) {
-    const { date, startHour, startMinute, endHour, endMinute, item } = ItemManagementData;
+    const { date, startHour, startMinute, endHour, endMinute, item, persons } = ItemManagementData;
 
-    // 1. Midnight Math: Convert to absolute minutes
+    // --- 1. PAST TIME VALIDATION ---
+    const now = new Date();
+    const requestedDate = new Date(date);
+    
+    // Normalize dates to midnight for comparison
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    
+    const checkDate = new Date(requestedDate);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (checkDate < todayMidnight) {
+        return { success: false, message: 'You cannot reserve an item for a past date.' };
+    }
+
+    // If booking for today, check if the start time has already passed
+    if (checkDate.getTime() === todayMidnight.getTime()) {
+        const nowInMinutes = now.getHours() * 60 + now.getMinutes();
+        const requestedStartInMinutes = startHour * 60 + startMinute;
+
+        if (requestedStartInMinutes < nowInMinutes) {
+            return { success: false, message: 'You cannot reserve the item in the past.' };
+        }
+    }
+
+    // --- 2. MIDNIGHT MATH & OVERLAP LOGIC ---
     const newStart = startHour * 60 + startMinute;
     let newEnd = endHour * 60 + endMinute;
     if (newEnd <= newStart) newEnd += 1440; // Handle midnight crossover
 
-    // 2. User Validation
+    // --- 3. USER VALIDATION ---
     const userFound = await this.user.findById(userId);
     if (!userFound) {
         return { success: false, message: 'This user does not exist' };
     }
 
-    // 3. Find the "Sibling" items
-    // First, find the branch/category of the item the user clicked
+    // --- 4. BRANCH & STATION SEARCH ---
     const requestedItem = await this.itemsService.getItemById(item);
     if (!requestedItem) {
         return { success: false, message: 'Station category not found' };
     }
 
-    // Get all items in the same branch
     const allBranchItems = await this.itemsService.getItemsByBranch(requestedItem.branch);
 
-    // 4. Search for any available station in this branch
-    let assignedItemId:any = null;
+    let assignedItemId: any = null;
 
     for (const station of allBranchItems) {
         const existingReservations = await this.itemManagementModel.find({
             item: station._id,
-            date: new Date(date),
+            date: checkDate, // Use normalized date
             'record.isDeleted': 0
         });
 
-        // Check if THIS station has an overlap
         const isBusy = existingReservations.some(res => {
             const exStart = res.startHour * 60 + res.startMinute;
             let exEnd = res.endHour * 60 + res.endMinute;
@@ -131,20 +152,20 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
 
         if (!isBusy) {
             assignedItemId = station._id;
-            break; // Found a free station!
+            break; 
         }
     }
 
-    // 5. Final check
     if (!assignedItemId) {
         return { success: false, message: 'No stations are available for this time slot.' };
     }
 
-    // 6. Create the reservation with the ID we actually found
+    // --- 5. CREATE RESERVATION ---
     const created = await this.itemManagementModel.create({
         ...ItemManagementData,
         item: assignedItemId,
         user: userId,
+        persons: persons || 2, // Use provided persons or schema default
         record: { state: 1, isDeleted: 0 }
     });
 

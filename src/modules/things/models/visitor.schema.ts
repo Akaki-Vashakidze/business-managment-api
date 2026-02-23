@@ -3,8 +3,11 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Visitor extends Document {
-  @Prop({ required: true, unique: true })
-  fingerprint: string; // Hash of IP + UserAgent
+  @Prop({ required: true, unique: true, index: true })
+  visitorId: string; // The primary ID (Cookie ID or Fingerprint)
+
+  @Prop()
+  fingerprint: string; // Server-side fallback hash
 
   @Prop()
   ip: string;
@@ -16,7 +19,10 @@ export class Visitor extends Document {
   os: string;
 
   @Prop()
-  deviceType: string; // mobile, tablet, or desktop
+  deviceType: string;
+
+  @Prop({ default: 1 })
+  totalVisits: number;
 
   @Prop({ default: Date.now })
   lastVisit: Date;

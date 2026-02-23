@@ -25,4 +25,7 @@ export class ReserveItemUserDto  {
     @IsNumber()
     isPaid: number;
 
+    @IsNumber()
+    persons: number;
+
 }
