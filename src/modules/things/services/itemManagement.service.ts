@@ -92,11 +92,8 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
     // --- 1. PAST TIME VALIDATION ---
     const now = new Date();
     const requestedDate = new Date(date);
-    
-    // Normalize dates to midnight for comparison
     const todayMidnight = new Date();
     todayMidnight.setHours(0, 0, 0, 0);
-    
     const checkDate = new Date(requestedDate);
     checkDate.setHours(0, 0, 0, 0);
 
@@ -104,68 +101,62 @@ async reserveItemByUser(ItemManagementData: ReserveItemUserDto, userId: string) 
         return { success: false, message: 'You cannot reserve an item for a past date.' };
     }
 
-    // If booking for today, check if the start time has already passed
     if (checkDate.getTime() === todayMidnight.getTime()) {
         const nowInMinutes = now.getHours() * 60 + now.getMinutes();
         const requestedStartInMinutes = startHour * 60 + startMinute;
-
         if (requestedStartInMinutes < nowInMinutes) {
             return { success: false, message: 'You cannot reserve the item in the past.' };
         }
     }
 
-    // --- 2. MIDNIGHT MATH & OVERLAP LOGIC ---
+    // --- 2. MIDNIGHT MATH ---
     const newStart = startHour * 60 + startMinute;
     let newEnd = endHour * 60 + endMinute;
-    if (newEnd <= newStart) newEnd += 1440; // Handle midnight crossover
+    if (newEnd <= newStart) newEnd += 1440; 
 
     // --- 3. USER VALIDATION ---
     const userFound = await this.user.findById(userId);
-    if (!userFound) {
-        return { success: false, message: 'This user does not exist' };
-    }
+    if (!userFound) return { success: false, message: 'This user does not exist' };
 
-    // --- 4. BRANCH & STATION SEARCH ---
+    // --- 4. SPECIFIC ITEM AVAILABILITY CHECK ---
+    // Instead of looping through all branch items, we check the one YOU sent.
     const requestedItem = await this.itemsService.getItemById(item);
     if (!requestedItem) {
-        return { success: false, message: 'Station category not found' };
+        return { success: false, message: 'Station not found' };
     }
 
-    const allBranchItems = await this.itemsService.getItemsByBranch(requestedItem.branch);
+    const existingReservations = await this.itemManagementModel.find({
+        item: item, // Checking the specific ID sent from frontend
+        date: checkDate,
+        'record.isDeleted': 0
+    });
 
-    let assignedItemId: any = null;
+    const conflict = existingReservations.find(res => {
+        const exStart = res.startHour * 60 + res.startMinute;
+        let exEnd = res.endHour * 60 + res.endMinute;
+        if (exEnd <= exStart) exEnd += 1440;
 
-    for (const station of allBranchItems) {
-        const existingReservations = await this.itemManagementModel.find({
-            item: station._id,
-            date: checkDate, // Use normalized date
-            'record.isDeleted': 0
-        });
+        return newStart < exEnd && newEnd > exStart;
+    });
 
-        const isBusy = existingReservations.some(res => {
-            const exStart = res.startHour * 60 + res.startMinute;
-            let exEnd = res.endHour * 60 + res.endMinute;
-            if (exEnd <= exStart) exEnd += 1440;
-
-            return newStart < exEnd && newEnd > exStart;
-        });
-
-        if (!isBusy) {
-            assignedItemId = station._id;
-            break; 
-        }
-    }
-
-    if (!assignedItemId) {
-        return { success: false, message: 'No stations are available for this time slot.' };
+    if (conflict) {
+        const sh = String(conflict.startHour).padStart(2, '0');
+        const sm = String(conflict.startMinute).padStart(2, '0');
+        const eh = String(conflict.endHour).padStart(2, '0');
+        const em = String(conflict.endMinute).padStart(2, '0');
+        return { 
+            success: false, 
+            message: `This item is not free, on ${sh}:${sm} - ${eh}:${em} times` 
+        };
     }
 
     // --- 5. CREATE RESERVATION ---
+    // Since it's free, we reserve that specific item ID
     const created = await this.itemManagementModel.create({
         ...ItemManagementData,
-        item: assignedItemId,
+        item: item, // The specific _id from frontend
         user: userId,
-        persons: persons || 2, // Use provided persons or schema default
+        persons: persons || 2,
         record: { state: 1, isDeleted: 0 }
     });
 
