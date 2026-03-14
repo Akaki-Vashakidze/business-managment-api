@@ -26,7 +26,7 @@ export class ItemController {
     @UseGuards(AdminGuard)
     @Delete('delete-item/:itemId')
     async deleteitem(@Param('itemId') itemId: string) {
-    return this.itemsService.deleteItem(itemId);
+        return this.itemsService.deleteItem(itemId);
     }
 
     @UseGuards(AdminGuard)
